@@ -1,5 +1,5 @@
 {
   "mcpServers": {
-    "vista-signals": {"command": "python", "args": ["-m", "signals.mcp_server"]}
+    "vista-signals": {"command": ".venv/bin/python", "args": ["-m", "signals.mcp_server"]}
   }
 }

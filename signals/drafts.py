@@ -14,8 +14,25 @@ SLOT = re.compile(r"\{(\w+)\}")
 COMMON = {"vista", "new", "network", "business", "links", "priority", "skyline", "robert", "castle", "information",
           "services", "companies", "construction", "contractors", "builders", "company", "group", "fulfillment"}
 # A claim about what the hire will do must be backed by the account's own ad text.
-CLAIMS = {r"reconcil\w* vendor statements?": "statement", r"procore-to-vista": "procore-to-vista",
+CLAIMS = {r"reconcil\w* vendor statements?": "statement", r"vendor statements?": "vendor statement",
+          r"procore-to-vista": "procore-to-vista",
           r"\breports? to\b": "reports to", r"\b(moving|migrating|switching) to vista": "to vista"}
+
+
+# Quotations: double quotes, curly double or single quotes, and straight single quotes that are not apostrophes.
+QUOTED = re.compile(r"[\"\u201c]([^\"\u201d]+)[\"\u201d]|\u2018(.+?)\u2019(?!\w)|(?<!\w)'(.+?)'(?!\w)")
+# Numbers written in words. "one" is left out: it is also a pronoun ("one of your vendors").
+WORDS = {w: i for i, w in enumerate("zero one two three four five six seven eight nine ten eleven twelve thirteen "
+                                    "fourteen fifteen sixteen seventeen eighteen nineteen".split())}
+WORDS.update({w: 10 * i for i, w in enumerate("twenty thirty forty fifty sixty seventy eighty ninety".split(), 2)})
+WORDS.update({"hundred": 100, "thousand": 1000, "dozen": 12})
+NUMBER_WORD = re.compile(r"\b(" + "|".join(w for w in WORDS if w != "one") + r")\b", re.I)
+PERCENT = re.compile(r"%|\bper ?cent\b|\bpercentage\b", re.I)
+
+
+def as_role_text(low: str) -> str:
+    """Read AP as Accounts Payable, so 'AP Specialist' is checked as the role 'Accounts Payable Specialist'."""
+    return re.sub(r"\bap\b", "accounts payable", low)
 
 
 class DraftError(ValueError):
@@ -59,6 +76,8 @@ def _allowed_numbers(acc: dict, product: dict) -> set[str]:
     for f in product["facts"].values():
         if isinstance(f["value"], int):
             nums.add(str(f["value"]))
+        for w in NUMBER_WORD.findall(f"{f['value']} {f['quote']}"):  # "about ten minutes" on Statement Zen's page
+            nums.add(str(WORDS[w.lower()]))
     nums.add(str(product["sender"]["call_minutes"]))
     return nums
 
@@ -71,13 +90,20 @@ def validate(text: str, acc: dict, ledger: dict, product: dict, kind: str = "mes
         problems.append("unfilled slot")
     if kind == "note" and not note_length_ok(text):
         problems.append(f"note is {len(text)} characters, over {rules.NOTE_LIMIT}")
-    for q in re.findall(r"[\"“]([^\"”]+)[\"”]", text):
-        if q.lower() not in corpus:
+    for m in QUOTED.finditer(text):
+        q = next(g for g in m.groups() if g is not None)
+        body = re.sub(r"(\u2026|\.\.\.)\s*$", "", q.strip())  # a quotation cut short with an ellipsis
+        if body.lower() not in corpus:
             problems.append(f"quote not in this account's ads: {q!r}")
     allowed = _allowed_numbers(acc, product)
     for n in re.findall(r"\d[\d,]*", text):
         if n.replace(",", "") not in allowed:
             problems.append(f"number not in this account's facts: {n}")
+    for w in NUMBER_WORD.findall(text):
+        if str(WORDS[w.lower()]) not in allowed:
+            problems.append(f"number not in this account's facts: {w}")
+    if PERCENT.search(text):
+        problems.append("percentage: no percentage is in this account's facts or on Statement Zen's page")
     low = text.lower()
     for other in ledger["accounts"]:
         if other["id"] == acc["id"]:
@@ -90,10 +116,11 @@ def validate(text: str, acc: dict, ledger: dict, product: dict, kind: str = "mes
             if re.search(rf"\b{re.escape(n)}\b", low):
                 problems.append(f"names another employer: {other['employer']}")
                 break
-    own_titles = {p["title"].lower() for p in acc["pages"]}
-    all_titles = {p["title"].lower(): p["title"] for o in ledger["accounts"] for p in o["pages"] if len(p["title"]) > 12}
+    roles = as_role_text(low)
+    own_titles = {as_role_text(p["title"].lower()) for p in acc["pages"]}
+    all_titles = {as_role_text(p["title"].lower()): p["title"] for o in ledger["accounts"] for p in o["pages"] if len(p["title"]) > 12}
     for t, shown in all_titles.items():
-        if t in low and t not in own_titles and not any(t in o and o in low for o in own_titles):
+        if t in roles and t not in own_titles and not any(t in o and o in roles for o in own_titles):
             problems.append(f"role taken from another ad: {shown}")
     for erp in rules.OTHER_ERPS + ["procore", "pvault"]:
         if re.search(rf"\b{re.escape(erp)}\b", low) and erp not in corpus:

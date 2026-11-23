@@ -22,8 +22,10 @@ This is the routine we use to refresh the list. Nothing is scheduled: you run it
 4. For each matched account, write the note and two follow-ups in `data/drafts_<date>.json` (same date as the
    pages file) with only `{first_name}` and `{company}` as slots, then run
    `python -m signals drafts <account> --first-name Test --pages data/pages_<date>.json`.
-   A draft that quotes words not in that account's ads, names another employer or another ad's role, cites a
-   system or a number from elsewhere, or runs over 200 characters (the note) is refused.
+   A draft is refused if it holds a quotation not found in that account's ads, names another employer or another
+   ad's role (AP read as Accounts Payable), mentions a system, vendor statements, a reporting line or a move to
+   Vista the ads do not, gives a number (figures or words) from elsewhere or a percentage, leaves a slot empty,
+   or runs over 200 characters (the note).
 5. The person is chosen in Sales Navigator by a human. Only then:
    `python -m signals payload <account> --profile-url <url> --first-name <name> --pages data/pages_<date>.json`
    gives the HeyReach body with the checked drafts as custom fields. Nothing is sent.

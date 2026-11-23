@@ -51,7 +51,7 @@ WRONG = [
     ("role from another account", UTIL, "I saw Utilitra is hiring a Senior Project Accountant."),
     ("reason lent to the wrong account", CAHILL, "I saw Cahill Contractors is hiring someone to reconcile vendor statements."),
     ("number taken elsewhere", UTIL, "The first 50 statements each month are free."),
-    ("two orders added together", UTIL, "Utilitra has 4 finance roles open right now."),
+    ("two orders added together", UTIL, "Utilitra has 5 finance roles open right now."),
     ("system not in the ad", CAHILL, "Since you run NetSuite next to Vista, this may help."),
     ("reporting line not in the ad", CAHILL, "Your new hire reports to the AP Supervisor."),
     ("percentage claim", UTIL, "It saves 80% of the time."),
@@ -68,9 +68,38 @@ def test_validator_catches_plausible_wrong_sentences(why, acc, text):
     assert D.validate(text, acc, LED, PRODUCT), why
 
 
+# Holes found by the closed review of 23 Nov 2026: each sentence below passed the validator before.
+HOLES = [
+    ("AP read as Accounts Payable", CAHILL, "With your AP Specialist opening covering vendor statements, it may be a good moment.", "role taken from another ad"),
+    ("vendor statements lent to an account without them", CAHILL, "Your vendor statements could close faster.", "vendor statements"),
+    ("number written in words", UTIL, "It saves thirty percent of the time.", "number"),
+    ("percentage without a figure", UTIL, "It saves a good percent of the time.", "percentage"),
+    ("fake quotation between straight single quotes", UTIL, "Your ad asks for 'a Vista expert from day one'.", "quote"),
+    ("fake quotation between curly single quotes", UTIL, "Your ad asks for \u2018a Vista expert from day one\u2019.", "quote"),
+]
+
+
+@pytest.mark.parametrize("why,acc,text,fragment", HOLES, ids=[h[0] for h in HOLES])
+def test_validator_closes_the_holes_of_the_review(why, acc, text, fragment):
+    problems = D.validate(text, acc, LED, PRODUCT)
+    assert any(fragment in p for p in problems), (why, problems)
+
+
 def test_validator_accepts_true_sentences():
     ok = "I saw Utilitra is adding an Accounts Payable Specialist; the first 25 statements each month are free."
     assert D.validate(ok, UTIL, LED, PRODUCT) == []
+    assert D.validate("Your AP Specialist ad covers vendor statements; set-up takes about ten minutes, once.", UTIL, LED, PRODUCT) == []
+    assert D.validate("I've worked with Vista for years. That's the check Statement Zen does.", UTIL, LED, PRODUCT) == []
+    # a quotation cut short with an ellipsis is still the ad's words; one closed with a full stop is not
+    assert D.validate("Your ad says \u201cReconcile and process vendor statements\u2026\u201d", UTIL, LED, PRODUCT) == []
+    assert D.validate("Your ad says \u201cReconcile and process vendor statements.\u201d", UTIL, LED, PRODUCT)
+
+
+def test_notes_do_not_read_as_working_at_viewpoint():
+    d = D.load_drafts("2026-11-23")["accounts"]
+    for acc in d.values():
+        assert "inside Viewpoint" not in acc["note"] and "in Viewpoint" not in acc["note"]
+        assert "I've worked with Vista for years." in acc["note"]
 
 
 def test_no_drafts_for_accounts_on_hold():

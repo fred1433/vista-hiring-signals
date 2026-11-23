@@ -13,16 +13,19 @@ def test_real_counts_of_the_23_november_read():
 
 def test_the_count_closes_like_a_statement():
     pr = LED["proof"]
-    assert pr["closes"] and pr["pages_read"] == 18 and pr["accounts"] == 15
-    assert sum(pr["by_status"].values()) == 18
-    assert pr["by_status"] == {"matched": 4, "hold": 4, "excluded": 10}
+    assert pr["closes"] and pr["pages_read"] == 19 and pr["accounts"] == 15
+    assert sum(pr["by_status"].values()) == 19
+    assert pr["by_status"] == {"matched": 5, "hold": 4, "excluded": 10}
 
 
 def test_one_employer_seen_through_several_ads_appears_once():
     ids = [a["id"] for a in LED["accounts"]]
     assert len(ids) == len(set(ids))
     util = L.account(LED, "utilitra")
-    assert len(util["pages"]) == 3 and util["status"] == "matched"
+    assert len(util["pages"]) == 4 and util["status"] == "matched"
+    assert util["reason_text"].startswith("4 finance ads posted between 9 Nov 2026 and 20 Nov 2026.")
+    intern = next(p for p in util["pages"] if p["id"] == "utilitra-intern")
+    assert intern["code"] == "names_vista" and intern["quotes"] == ["Knowledge of Vista by Viewpoint beneficial, but not expected"]
     assert len(L.account(LED, "mastec")["pages"]) == 2
 
 
