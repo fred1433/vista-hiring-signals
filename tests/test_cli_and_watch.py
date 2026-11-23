@@ -15,7 +15,7 @@ def test_drafts_without_first_name_shows_templates(capsys):
 
 
 def test_drafts_for_held_account_is_a_clean_error(capsys):
-    assert main(["drafts", "rodan-builders", "--first-name", "Sam"]) == 2
+    assert main(["drafts", "mastec", "--first-name", "Sam"]) == 2
 
 
 def test_unknown_account_is_a_clean_error(capsys):

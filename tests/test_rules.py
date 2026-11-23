@@ -85,6 +85,7 @@ def test_closed_ad_is_removed():
 @pytest.mark.parametrize("raw,expected", [
     ("5mo ago", date(2026, 6, 26)), ("13d", date(2026, 11, 10)), ("3 weeks ago", date(2026, 11, 2)),
     ("yesterday", date(2026, 11, 22)), ("today", READ), ("30+ days ago", date(2026, 10, 24)), ("soon", None),
+    ("2 hrs ago", READ), ("2 wks ago", date(2026, 11, 9)), ("a month ago", date(2026, 10, 24)), ("an hour ago", READ),
 ])
 def test_relative_dates(raw, expected):
     assert rules.parse_relative(raw, READ) == expected

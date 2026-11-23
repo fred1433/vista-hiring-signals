@@ -9,14 +9,14 @@ from signals import rules
 
 ROOT = Path(__file__).parent
 led = L.build(L.load())
-drafts = D.load_drafts()
+drafts = D.load_drafts(led["read_on"])
 product = D.load_product()
 PLACEHOLDER = "https://www.linkedin.com/in/chosen-in-sales-navigator"
 
 accounts = []
 for a in led["accounts"]:
     row = {k: a[k] for k in ("id", "employer", "status", "reason", "reason_text", "lead_page", "location")}
-    row["pages"] = [{k: p[k] for k in ("id", "title", "url", "posted", "code", "quotes", "source", "http", "freshness")}
+    row["pages"] = [{k: p[k] for k in ("id", "title", "url", "posted", "code", "quotes", "source", "http", "freshness", "portal_message")}
                     | {"why": ("Names Vista, inside the window." if p["code"] in ("names_vista", "migrating_to_vista")
                            else "Same employer, merged into this account; this ad does not name Vista itself." if a["status"] == "matched" and p["code"] == "no_vista"
                            else L.page_reason(p, a["employer"]))}
@@ -28,12 +28,12 @@ for a in led["accounts"]:
         row["approach"] = d["approach"]
         row["approach_quote"] = d["approach_quote"]
         row["sales_navigator"] = d["sales_navigator"]
-        row["payload"] = P.heyreach(a, PLACEHOLDER)
+        row["payload"] = P.heyreach(a, PLACEHOLDER)  # the page adds firstName and the drafts, as `payload --first-name` does
     accounts.append(row)
 
 out = {"read_on": led["read_on"], "window_days": led["window_days"], "counts": led["counts"], "proof": led["proof"],
        "accounts": accounts, "also_read": led["also_read"], "australia": led["australia"], "note_limit": rules.NOTE_LIMIT,
-       "product_source": product["source"]}
+       "product_source": product["source"], "message_fields": P.MESSAGE_FIELDS}
 (ROOT / "site").mkdir(exist_ok=True)
 (ROOT / "site" / "data.js").write_text("window.LEDGER = " + json.dumps(out, indent=1, ensure_ascii=False) + ";\n")
 print("site/data.js written:", led["counts"], "closes" if led["proof"]["closes"] else "DOES NOT CLOSE")

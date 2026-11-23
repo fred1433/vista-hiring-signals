@@ -75,14 +75,19 @@ def classify_page(page: dict, read_on: date) -> dict:
     return {"id": page["id"], "title": page["title"], "url": page["url"], "posted": page.get("posted"),
             "freshness": fresh, "code": code, "quotes": page.get("quotes", []), "location": page.get("location"),
             "source": page.get("source"), "http": page.get("http"),
-            "age_days": (read_on - posted).days if posted else None}
+            "age_days": (read_on - posted).days if posted else None,
+            "absent_from_openings": page.get("absent_from_openings"), "portal_message": page.get("portal_message")}
 
 
 def page_reason(p: dict, employer: str) -> str:
     c = p["code"]
     if c == "closed":
         return f"Closed when read: the page answered {p['http']}" + (" with 'Job Not Found'." if p["http"] == 200 else ".")
+    if c.startswith("hold:"):
+        return HOLD_TEXT[c.split(":", 1)[1]]
     if c in ("outside_window", "expired"):
+        if p.get("absent_from_openings"):
+            return f"Published {fmt(_d(p['posted']))}, {p['age_days']} days before our read, and no longer in their current openings."
         return f"Posted {fmt(_d(p['posted']))}, {p['age_days']} days before our read: outside the {rules.WINDOW_DAYS}-day window."
     return {
         "vista_is_a_place": "Here Vista is a place name, not the software.",
@@ -112,7 +117,7 @@ def build(data: dict) -> dict:
     rows = sorted(accounts.values(), key=lambda a: (order[a["status"]], -(a["sort_date"] or 0)))
     counts = {s: sum(1 for a in rows if a["status"] == s) for s in order}
     page_counts = {s: sum(len(a["pages"]) for a in rows if a["status"] == s) for s in order}
-    proof = {"pages_read": len(pages), "by_status": page_counts,
+    proof = {"pages_read": len(pages), "accounts": len(rows), "by_status": page_counts,
              "closes": sum(page_counts.values()) == len(pages),
              "merged": sum(len(a["pages"]) - 1 for a in rows)}
     return {"read_on": data["read_on"], "window_days": data.get("window_days", rules.WINDOW_DAYS),

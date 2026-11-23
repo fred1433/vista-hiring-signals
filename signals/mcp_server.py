@@ -38,17 +38,22 @@ def apply_rules(pages_file: str | None = None) -> dict:
 
 
 @mcp.tool()
-def draft_messages(account_id: str, first_name: str) -> dict:
-    """Connection note (<= 200 characters) and two follow-ups for a matched account, validated against its facts."""
-    led = L.build(L.load())
+def draft_messages(account_id: str, first_name: str, pages_file: str | None = None) -> dict:
+    """Connection note (<= 200 characters) and two follow-ups for a matched account, validated against its facts.
+    The drafts are read from data/drafts_<read_on>.json for the read in pages_file."""
+    led = L.build(L.load(pages_file or L.DEFAULT_PAGES))
     return D.render(L.account(led, account_id), led, first_name)
 
 
 @mcp.tool()
-def build_payload(account_id: str, profile_url: str, campaign_id: int | None = None, sender_id: int | None = None) -> dict:
-    """HeyReach AddLeadsToCampaignV2 body for the person chosen in Sales Navigator. Nothing is sent."""
-    led = L.build(L.load())
-    return P.heyreach(L.account(led, account_id), profile_url, campaign_id, sender_id)
+def build_payload(account_id: str, profile_url: str, first_name: str | None = None, campaign_id: int | None = None,
+                  sender_id: int | None = None, pages_file: str | None = None) -> dict:
+    """HeyReach AddLeadsToCampaignV2 body for the person chosen in Sales Navigator. With first_name, the checked
+    drafts are added as custom fields. Nothing is sent."""
+    led = L.build(L.load(pages_file or L.DEFAULT_PAGES))
+    acc = L.account(led, account_id)
+    msgs = D.render(acc, led, first_name) if first_name and acc.get("status") == "matched" else None
+    return P.heyreach(acc, profile_url, campaign_id, sender_id, first_name, msgs)
 
 
 if __name__ == "__main__":

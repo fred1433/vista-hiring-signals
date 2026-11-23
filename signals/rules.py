@@ -77,7 +77,7 @@ def freshness(posted: date | None, read_on: date) -> str:
     return "expired"
 
 
-_REL = re.compile(r"(?P<n>\d+)\s*\+?\s*(?P<u>mo|month|months|d|day|days|w|wk|week|weeks|h|hr|hours?)\b", re.I)
+_REL = re.compile(r"(?P<n>\d+|an?)\s*\+?\s*(?P<u>mos?|months?|d|days?|w|wks?|weeks?|h|hrs?|hours?)\b", re.I)
 
 
 def parse_relative(raw: str, read_on: date) -> date | None:
@@ -91,7 +91,8 @@ def parse_relative(raw: str, read_on: date) -> date | None:
     m = _REL.search(s)
     if not m:
         return None
-    n, u = int(m.group("n")), m.group("u").lower()
+    n = 1 if m.group("n").lower() in ("a", "an") else int(m.group("n"))
+    u = m.group("u").lower()
     if u.startswith("mo"):
         return read_on - timedelta(days=30 * n)
     if u.startswith("w"):

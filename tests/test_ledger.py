@@ -7,14 +7,15 @@ LED = L.build(L.load())
 
 
 def test_real_counts_of_the_23_november_read():
-    assert LED["counts"] == {"matched": 2, "hold": 4, "excluded": 9}
+    assert LED["counts"] == {"matched": 2, "hold": 3, "excluded": 10}
     assert LED["australia"]["found"] == 0
 
 
 def test_the_count_closes_like_a_statement():
     pr = LED["proof"]
-    assert pr["closes"] and pr["pages_read"] == 18
+    assert pr["closes"] and pr["pages_read"] == 18 and pr["accounts"] == 15
     assert sum(pr["by_status"].values()) == 18
+    assert pr["by_status"] == {"matched": 4, "hold": 4, "excluded": 10}
 
 
 def test_one_employer_seen_through_several_ads_appears_once():
@@ -54,3 +55,24 @@ def test_matched_accounts_are_fresh_and_name_vista():
     for a in LED["accounts"]:
         if a["status"] == "matched":
             assert any(p["code"] in ("names_vista", "migrating_to_vista") and p["freshness"] == "fresh" for p in a["pages"])
+
+
+def test_rodan_is_excluded_published_in_september_and_gone_from_openings():
+    rodan = L.account(LED, "rodan-builders")
+    assert rodan["status"] == "excluded"
+    assert rodan["reason_text"] == "Published 10 Sep 2026, 74 days before our read, and no longer in their current openings."
+
+
+def test_a_portal_outage_message_is_not_an_ad_quote():
+    penhall = L.account(LED, "penhall")
+    assert penhall["status"] == "hold" and penhall["reason"] == "portal_offline"
+    page = penhall["pages"][0]
+    assert page["quotes"] == [] and "offline" in page["portal_message"]
+    assert L.page_reason(page, penhall["employer"]) == L.HOLD_TEXT["portal_offline"]
+
+
+def test_the_window_holds_for_matched_accounts_only():
+    for a in LED["accounts"]:
+        if a["status"] == "matched":
+            live = [p for p in a["pages"] if p["code"] != "closed"]
+            assert all(p["posted"] >= "2026-11-09" for p in live)

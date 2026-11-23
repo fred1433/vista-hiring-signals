@@ -31,7 +31,12 @@ def custom_fields(acc: dict) -> list[dict]:
     return fields
 
 
-def heyreach(acc: dict, profile_url: str | None, campaign_id: int | None = None, sender_id: int | None = None) -> dict:
+MESSAGE_FIELDS = {"note": "connection_note", "followup_1": "followup_1", "followup_2": "followup_2"}
+
+
+def heyreach(acc: dict, profile_url: str | None, campaign_id: int | None = None, sender_id: int | None = None,
+             first_name: str | None = None, messages: dict | None = None) -> dict:
+    """messages: the drafts already rendered and validated for first_name (signals.drafts.render)."""
     if acc.get("status") != "matched":
         raise PayloadError(f"{acc['employer']} is {STATUS_LABEL.get(acc.get('status'), acc.get('status'))}: only matched accounts are handed to the sender")
     if not profile_url:
@@ -42,8 +47,19 @@ def heyreach(acc: dict, profile_url: str | None, campaign_id: int | None = None,
         "campaignId": campaign_id if campaign_id is not None else "YOUR_CAMPAIGN_ID",
         "accountLeadPairs": [{
             "linkedInAccountId": sender_id if sender_id is not None else "YOUR_SENDER_ID",
-            "lead": {"profileUrl": profile_url, "companyName": acc["employer"], "customUserFields": custom_fields(acc)},
+            "lead": _lead(acc, profile_url, first_name, messages),
         }],
         "resumeFinishedCampaign": False,
         "resumePausedCampaign": False,
     }
+
+
+def _lead(acc: dict, profile_url: str, first_name: str | None, messages: dict | None) -> dict:
+    lead = {}
+    if first_name and first_name.strip():
+        lead["firstName"] = first_name.strip()
+    lead.update(profileUrl=profile_url, companyName=acc["employer"], customUserFields=custom_fields(acc))
+    for k, name in MESSAGE_FIELDS.items():
+        if messages and k in messages:
+            lead["customUserFields"].append({"name": name, "value": messages[k]})
+    return lead

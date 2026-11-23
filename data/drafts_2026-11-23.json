@@ -5,9 +5,9 @@
       "approach": "Accounts Payable Supervisor",
       "approach_quote": "Reports to: Accounts Payable Supervisor",
       "sales_navigator": {"company": "Utilitra", "titles": "(\"accounts payable supervisor\" OR \"AP supervisor\" OR \"accounts payable manager\" OR controller)"},
-      "note": "Hi {first_name}, I saw {company} is adding an AP Specialist to reconcile vendor statements, with Vista on the controller side. I've spent years inside Viewpoint. Happy to connect.",
-      "followup_1": "Thanks for connecting, {first_name}. A practical question from one Vista person to another: when a supplier statement shows a credit that never reached Vista, who catches it before the payment run? That check is why I built Statement Zen. Vista's Workflow Notifier emails your AP position, you forward the supplier's statement as it arrived, and you only see the lines that differ, with the closing balance proven or not. The first 25 statements each month are free if you'd like to try it on one real vendor.",
-      "followup_2": "One last note, {first_name}. With a new AP Specialist about to take on vendor statements, it may be a good moment to see this on your own numbers. Your IT team pastes one query into Workflow Notifier, about ten minutes, once, and nothing in Vista can be changed from our side. Would a 15-minute walkthrough on one of your vendors help?"
+      "note": "Hi {first_name}, I saw {company} is adding an AP Specialist to reconcile vendor statements, and your Project Controller ad names Vista. I've spent years inside Viewpoint. Happy to connect.",
+      "followup_1": "Thanks for connecting, {first_name}. A practical question from one Vista person to another: when a supplier statement shows a credit that never reached Vista, who catches it before the payment run? That's the check Statement Zen does. Vista's Workflow Notifier emails your AP position, you forward the supplier's statement as it arrived, and you only see the lines that differ, with the closing balance proven or not. The first 25 statements each month are free if you'd like to try it on one real vendor.",
+      "followup_2": "One last note, {first_name}. With your AP Specialist opening covering vendor statements, it may be a good moment to see this on your own numbers. Your IT team pastes one query into Workflow Notifier, about ten minutes, once, and nothing in Vista can be changed from our side. Would a 15-minute walkthrough on one of your vendors help?"
     },
     "cahill-contractors": {
       "approach": "Controller or Accounting Manager",

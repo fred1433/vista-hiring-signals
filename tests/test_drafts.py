@@ -55,6 +55,11 @@ WRONG = [
     ("system not in the ad", CAHILL, "Since you run NetSuite next to Vista, this may help."),
     ("reporting line not in the ad", CAHILL, "Your new hire reports to the AP Supervisor."),
     ("percentage claim", UTIL, "It saves 80% of the time."),
+    ("role of one account lent to the other", CAHILL, "I saw your Project Controller ad names Vista."),
+    ("role of the other account", UTIL, "Your Senior Project Accountant reconciles vendor statements."),
+    ("a day borrowed from a posting date", UTIL, "Your AP Specialist starts on 17 December."),
+    ("two accounts glued together", UTIL, "Utilitra and Cahill Contractors both run Vista."),
+    ("statements lent to the account without them", CAHILL, "Your new hire will reconcile vendor statements in Vista."),
 ]
 
 
@@ -70,7 +75,7 @@ def test_validator_accepts_true_sentences():
 
 def test_no_drafts_for_accounts_on_hold():
     with pytest.raises(D.DraftError):
-        D.render(L.account(LED, "rodan-builders"), LED, "Sam")
+        D.render(L.account(LED, "mastec"), LED, "Sam")
 
 
 def test_payload_needs_the_person_chosen_in_sales_navigator():
@@ -87,3 +92,26 @@ def test_payload_needs_the_person_chosen_in_sales_navigator():
 def test_payload_refused_for_held_or_excluded_accounts():
     with pytest.raises(P.PayloadError):
         P.heyreach(L.account(LED, "mastec"), "https://www.linkedin.com/in/example-person")
+
+
+def test_drafts_say_nothing_about_motives_or_new_hires():
+    d = D.load_drafts("2026-11-23")["accounts"]
+    text = " ".join(v for a in d.values() for k, v in a.items() if k in ("note", "followup_1", "followup_2"))
+    assert "why I built" not in text and "about to take on" not in text and "%" not in text
+    assert "controller side" not in text and "Project Controller" in d["utilitra"]["note"]
+
+
+def test_drafts_are_loaded_for_the_date_of_the_read():
+    other = dict(LED, read_on="2026-11-30")
+    with pytest.raises(D.DraftError, match="drafts_2026-11-30.json"):
+        D.render(UTIL, other, "Sam")
+
+
+def test_payload_with_first_name_carries_the_checked_drafts():
+    msgs = D.render(UTIL, LED, "Dana")
+    body = P.heyreach(UTIL, "https://www.linkedin.com/in/example-person", first_name="Dana", messages=msgs)
+    lead = body["accountLeadPairs"][0]["lead"]
+    assert lead["firstName"] == "Dana"
+    fields = {f["name"]: f["value"] for f in lead["customUserFields"]}
+    assert fields["connection_note"] == msgs["note"] and fields["followup_2"] == msgs["followup_2"]
+    assert "{first_name}" not in str(body)

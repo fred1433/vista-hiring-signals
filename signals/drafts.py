@@ -22,8 +22,16 @@ class DraftError(ValueError):
     pass
 
 
-def load_drafts(path=DEFAULT_DRAFTS) -> dict:
-    return json.loads(Path(path).read_text())
+def drafts_path(read_on: str | None = None) -> Path:
+    """The drafts belong to one read: data/drafts_<read_on>.json, next to data/pages_<read_on>.json."""
+    return DATA / f"drafts_{read_on}.json" if read_on else DEFAULT_DRAFTS
+
+
+def load_drafts(read_on: str | None = None, path=None) -> dict:
+    p = Path(path) if path else drafts_path(read_on)
+    if not p.exists():
+        raise DraftError(f"no drafts for the read of {read_on}: write {p.relative_to(DATA.parent) if p.is_relative_to(DATA.parent) else p} first")
+    return json.loads(p.read_text())
 
 
 def load_product(path=PRODUCT) -> dict:
@@ -44,11 +52,8 @@ def note_length_ok(text: str) -> bool:
 
 
 def _allowed_numbers(acc: dict, product: dict) -> set[str]:
+    # Posting dates are not allowed as bare numbers: "starts on 17 December" would borrow the 17 of another ad's date.
     nums = set()
-    for p in acc["pages"]:
-        if p["posted"]:
-            y, m, d = p["posted"].split("-")
-            nums |= {y, str(int(m)), str(int(d))}
     live = [p for p in acc["pages"] if p["code"] != "closed"]
     nums.add(str(len(live)))
     for f in product["facts"].values():
@@ -100,7 +105,7 @@ def validate(text: str, acc: dict, ledger: dict, product: dict, kind: str = "mes
 
 
 def render(acc: dict, ledger: dict, first_name: str, drafts=None, product=None) -> dict:
-    drafts = drafts or load_drafts()
+    drafts = drafts or load_drafts(ledger.get("read_on"))
     product = product or load_product()
     d = drafts["accounts"].get(acc["id"])
     if d is None:
@@ -115,8 +120,8 @@ def render(acc: dict, ledger: dict, first_name: str, drafts=None, product=None) 
     return out
 
 
-def note_budget(acc_id: str, drafts=None, employer: str = "") -> int:
+def note_budget(acc_id: str, drafts=None, employer: str = "", read_on: str | None = None) -> int:
     """Characters left for the first name once the company is filled in."""
-    drafts = drafts or load_drafts()
+    drafts = drafts or load_drafts(read_on)
     t = drafts["accounts"][acc_id]["note"].replace("{company}", employer)
     return rules.NOTE_LIMIT - len(t.replace("{first_name}", ""))
