@@ -1,0 +1,13 @@
+{
+  "source": "https://statementzen.com/vista-supplier-statement-reconciliation",
+  "read_on": "2026-11-23",
+  "facts": {
+    "free_per_month": {"value": 25, "quote": "Your first 25 reconciled statements each month are free."},
+    "setup": {"value": "Workflow Notifier", "quote": "Statement Zen writes the query, and you paste it into Vista’s Workflow Notifier once."},
+    "setup_time": {"value": "about ten minutes", "quote": "About ten minutes for your IT team, once."},
+    "read_only": {"value": "no write access", "quote": "Statement Zen does not log in, never reads your database directly, and cannot change data in your system."},
+    "forward": {"value": "forward the statement", "quote": "Forward it to your unique Statement Zen address in the format you received it"},
+    "closing_balance": {"value": "proven or not", "quote": "reports the closing balance as proven or not."}
+  },
+  "sender": {"call_minutes": 15}
+}

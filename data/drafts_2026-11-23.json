@@ -1,0 +1,21 @@
+{
+  "written_by": "Drafted by our agent from each account's quotes; checked by signals.drafts.validate before display. Nothing is sent.",
+  "accounts": {
+    "utilitra": {
+      "approach": "Accounts Payable Supervisor",
+      "approach_quote": "Reports to: Accounts Payable Supervisor",
+      "sales_navigator": {"company": "Utilitra", "titles": "(\"accounts payable supervisor\" OR \"AP supervisor\" OR \"accounts payable manager\" OR controller)"},
+      "note": "Hi {first_name}, I saw {company} is adding an AP Specialist to reconcile vendor statements, with Vista on the controller side. I've spent years inside Viewpoint. Happy to connect.",
+      "followup_1": "Thanks for connecting, {first_name}. A practical question from one Vista person to another: when a supplier statement shows a credit that never reached Vista, who catches it before the payment run? That check is why I built Statement Zen. Vista's Workflow Notifier emails your AP position, you forward the supplier's statement as it arrived, and you only see the lines that differ, with the closing balance proven or not. The first 25 statements each month are free if you'd like to try it on one real vendor.",
+      "followup_2": "One last note, {first_name}. With a new AP Specialist about to take on vendor statements, it may be a good moment to see this on your own numbers. Your IT team pastes one query into Workflow Notifier, about ten minutes, once, and nothing in Vista can be changed from our side. Would a 15-minute walkthrough on one of your vendors help?"
+    },
+    "cahill-contractors": {
+      "approach": "Controller or Accounting Manager",
+      "approach_quote": null,
+      "sales_navigator": {"company": "Cahill Contractors", "titles": "(controller OR \"accounting manager\" OR \"accounts payable manager\" OR \"AP manager\")"},
+      "note": "Hi {first_name}, saw {company} is hiring a Senior Project Accountant to run vendor and sub invoices through the Procore-to-Vista sync. I've spent years in Viewpoint. Glad to connect.",
+      "followup_1": "Thanks for connecting, {first_name}. With vendor and sub invoices moving from Procore into Vista, the supplier's own statement is the outside check that nothing slipped in the sync. Who ties those out at {company} today? Statement Zen does that check without touching Vista: Workflow Notifier emails your AP position, you forward the statement, and only what differs comes back, with the closing balance proven or not. The first 25 statements each month are free.",
+      "followup_2": "Last one from me, {first_name}. If month-end at {company} still means ticking statements line by line, I'd be glad to run one of your real vendor statements through it with you in 15 minutes. The Vista side is one query in Workflow Notifier, set up once by IT."
+    }
+  }
+}

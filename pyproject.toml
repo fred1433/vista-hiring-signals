@@ -1,0 +1,13 @@
+[project]
+name = "vista-signals"
+version = "0.1.0"
+description = "Finance job ads that name Vista by Viewpoint, read from employer pages, turned into a weekly list with drafts."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.2"]
+test = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
